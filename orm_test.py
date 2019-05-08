@@ -18,3 +18,5 @@ if __name__ == "__main__":
     user = User(name='test', password=None)
     user.save()
 
+    user.name = 'updated'
+    user.update()
