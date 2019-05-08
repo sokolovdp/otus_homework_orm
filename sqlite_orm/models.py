@@ -11,6 +11,7 @@ class ModelInfo:
         self.fields_map = dict()
         self.db_connection = None
         self.base_query = Query
+        self._inited = None
 
     @property
     def db(self):
@@ -21,12 +22,13 @@ class ModelInfo:
 
 
 class ModelMeta(type):
+    __slots__ = ()
 
     def __new__(mcs, name: str, bases, attrs: dict):
         fields_map = dict()
 
-        if "id" not in attrs:
-            attrs["id"] = fields.IntegerField(is_pk=True)
+        # if "id" not in attrs:
+        #     attrs["id"] = fields.IntegerField(is_pk=True)
 
         for key, value in attrs.items():
             if isinstance(value, fields.Field):
@@ -34,12 +36,12 @@ class ModelMeta(type):
                 if not value.db_field_name:
                     value.db_field_name = key
 
-        attrs["_meta"] = meta = ModelInfo(attrs.get("Meta"))
-
+        meta = ModelInfo(attrs.get("Meta"))
         meta.fields_map = fields_map
         meta.fields = set(fields_map.keys())
         meta.db_connection = None
         meta._inited = False
+        attrs["_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
         return new_class
@@ -47,9 +49,10 @@ class ModelMeta(type):
 
 class OrmModel(metaclass=ModelMeta):
     _meta = ModelInfo(None)
-    id = None
 
-    def __init__(self, *args, **kwargs):
+    # id = None
+
+    def __init__(self, **kwargs):
         meta = self._meta
         for key, value in kwargs.items():
             if key in meta.fields:
@@ -58,22 +61,25 @@ class OrmModel(metaclass=ModelMeta):
                     raise exceptions.OrmConfigurationError(f"{key} is non nullable field, but null was passed")
                 field_object.value = value
 
-    def insert(self, **kwargs):
-        db = self._meta.db_connection
-        # db.execute_insert(table=self)
+    @classmethod
+    def create(self, **kwargs):
+        self.__init__(**kwargs)
 
     def update(self, **kwargs):
-        db = self._meta.db_connection
-        # db.execute_update(table=self)
+        pass
 
-    def save(self, **kwargs):
-        if self.id.value is not None:
-            self.update(**kwargs)
-        else:
-            self.insert(**kwargs)
+    def save_to_db(self, **kwargs):
+        # if self.id is not None:
+        #     self.update(**kwargs)
+        # else:
+        #     self.insert(**kwargs)
+        pass
 
-    def delete(self):
+    def delete_from_db(self):
         db = self._meta.db_connection
-        if self.id.value is None:
-            raise exceptions.OrmOperationalError("Can't delete uncreated record")
+        # if self.id.value is None:
+        #     raise exceptions.OrmOperationalError("Can't delete uncreated record")
         # db.execute_delete(table=self)
+
+    def asdict(self):
+        return {name: field.value for name, field in self._meta.fields_map.items()}
