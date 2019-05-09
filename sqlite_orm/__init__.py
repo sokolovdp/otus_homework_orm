@@ -42,4 +42,4 @@ class ORM:
         cls.close_connection(db_file=db_file)
         cls.stop_models(config=config)
         cls._started = False
-        logger.info(f'stoped')
+        logger.info(f'stopped')
