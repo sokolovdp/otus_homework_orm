@@ -1,4 +1,5 @@
-from . import fields, db_connector, exceptions
+import sqlite_orm
+from sqlite_orm import exceptions, fields
 
 
 class ModelInfo:
@@ -66,6 +67,8 @@ class OrmModel(metaclass=ModelMeta):
                 setattr(self, name, None)
             else:
                 raise exceptions.OrmConfigurationError(f"{name} is non nullable field, but no default value set")
+
+        sqlite_orm.ORM.register_model(self)
 
     def create(self, **kwargs):
         self.__init__(**kwargs)

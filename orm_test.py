@@ -15,9 +15,8 @@ class User(models.OrmModel):
 if __name__ == "__main__":
 
     user = User(name='test', password=None)
-    config = {'models': ['__main__', ]}
 
-    ORM.start(db_file='data.sqlite', config=config, create_db=True)
+    ORM.start(db_file='data.sqlite',  create_db=True)
 
     ORM.stop()
 
