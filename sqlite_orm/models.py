@@ -12,13 +12,6 @@ class ModelInfo:
         self.started = None
         self.db_connection = None
 
-    @property
-    def db(self):
-        if self.db_connection:
-            return self.db_connection
-        else:
-            raise exceptions.OrmOperationalError("No DB associated to model")
-
 
 class ModelMeta(type):
 
@@ -84,10 +77,10 @@ class OrmModel(metaclass=ModelMeta):
         pass
 
     def delete(self):
-        db = self._meta.db_connection
         # if self.id.value is None:
         #     raise exceptions.OrmOperationalError("Can't delete uncreated record")
         # db.execute_delete(db_table_name=self)
+        pass
 
     def asdict(self):
         return self.__dict__
