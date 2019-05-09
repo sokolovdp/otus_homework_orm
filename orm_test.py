@@ -1,7 +1,5 @@
 from datetime import datetime
-from sqlite_orm import fields, models, db_connector
-
-db_connector.ORM.start(db_file='data.sqlite', generate_schemas=True)
+from sqlite_orm import fields, models, ORM
 
 
 class User(models.OrmModel):
@@ -17,8 +15,9 @@ class User(models.OrmModel):
 if __name__ == "__main__":
 
     user = User(name='test', password=None)
+    config = {'models': ['__main__', ]}
 
-    print(User.__dict__)
-    print(user.__dict__)
+    ORM.start(db_file='data.sqlite', config=config)
 
-    print(user.asdict())
+    ORM.stop()
+

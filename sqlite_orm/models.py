@@ -7,6 +7,8 @@ class ModelInfo:
         self.db_table_name = getattr(meta, "table", None)
         self.fields = None
         self.fields_map = None
+        self.fields_db = None
+        self.started = None
         self.db_connection = None
 
     @property
@@ -21,16 +23,21 @@ class ModelMeta(type):
 
     def __new__(mcs, name, bases, attrs):
         fields_map = dict()
+        fields_db = dict()
 
         for name, field in attrs.items():
             if isinstance(field, fields.Field):
                 fields_map[name] = field
                 if not field.db_field_name:
                     field.db_field_name = name
+                fields_db[name] = field.db_field_name
 
         meta = ModelInfo(attrs.get("Meta"))
         meta.fields_map = fields_map
         meta.fields = set(fields_map.keys())
+        meta.fields_db = fields_db
+        meta.db_connection = None
+        meta.started = False
         attrs["_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
@@ -60,21 +67,20 @@ class OrmModel(metaclass=ModelMeta):
             else:
                 raise exceptions.OrmConfigurationError(f"{name} is non nullable field, but no default value set")
 
-    @classmethod
     def create(self, **kwargs):
         self.__init__(**kwargs)
 
     def update(self, **kwargs):
         pass
 
-    def save_to_db(self, **kwargs):
+    def save(self, **kwargs):
         # if self.id is not None:
         #     self.update(**kwargs)
         # else:
         #     self.insert(**kwargs)
         pass
 
-    def delete_from_db(self):
+    def delete(self):
         db = self._meta.db_connection
         # if self.id.value is None:
         #     raise exceptions.OrmOperationalError("Can't delete uncreated record")
