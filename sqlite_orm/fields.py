@@ -8,8 +8,6 @@ MAX_STRING_LENGTH = 4000
 class Field:
 
     def __init__(self, name, py_type, **kwargs):
-        if self.__class__ is Field:
-            raise TypeError("'Field' is internal abstract type")
         self.name = name
         self.is_pk = kwargs.pop('is_pk', False)
         self.nullable = kwargs.pop('nullable', False)
