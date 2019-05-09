@@ -23,7 +23,7 @@ class ORM:
         pass
 
     @classmethod
-    def start(cls, db_file: str = 'data.sqlite', config: dict = None):
+    def start(cls, db_file: str = 'data.sqlite', config: dict = None, create_db=False):
         cls.open_connection(db_file=db_file)
         cls.start_models(config=config)
         cls._started = True
