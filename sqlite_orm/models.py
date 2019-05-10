@@ -64,8 +64,10 @@ class OrmModel(metaclass=ModelMeta):
         sqlite_orm.ORM.register_table(meta)
         sqlite_orm.ORM.register_model(self)
 
-    def create(self, **kwargs):
-        self.__init__(**kwargs)
+    @classmethod
+    def create(cls, **kwargs):
+        instance = cls(**kwargs)
+        instance.save()
 
     def update(self, **kwargs):
         pass

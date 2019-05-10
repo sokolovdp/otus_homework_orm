@@ -17,8 +17,10 @@ if __name__ == "__main__":
 
     user1 = User(name='test1', password=None)
     user2 = User(name='test2', password=None)
-    user3 = User(name='test3', password=None)
-    user4 = User(name='test4', password=None)
+    user1.save()
+    user2.save()
+    user3 = User.create(name='test3', password=None)
+    user4 = User.create(name='test4', password=None)
 
     ORM.stop()
 
