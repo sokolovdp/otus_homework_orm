@@ -19,7 +19,7 @@ logging.basicConfig(
 orm_logger = logging.getLogger('ORM')
 
 
-class SqliteSchemaGenerator:
+class SqliteSchema:
     TABLE_CREATE_TEMPLATE = "CREATE TABLE IF NOT EXISTS '{table_name}' ({fields} PRIMARY KEY {name});"
     FIELD_TEMPLATE = '"{name}" {db_type} {nullable}'
 
@@ -33,20 +33,21 @@ class SqliteSchemaGenerator:
 class SQLiteClient:
     def __init__(self, db_file: str) -> None:
         self.db_file = db_file
-        self._connection = None
+        self.db_connection = None
+        self.db_schema = SqliteSchema
 
     def open_connection(self, ):
-        if not self._connection:
-            self._connection = sqlite3.connect(self.db_file, isolation_level=None)
-            self._connection.row_factory = sqlite3.Row
-            orm_logger.info(f"Created connection {self._connection} with db_name: {self.db_file}")
-            return self._connection
+        if not self.db_connection:
+            self.db_connection = sqlite3.connect(self.db_file, isolation_level=None)
+            self.db_connection.row_factory = sqlite3.Row
+            orm_logger.info(f"Created connection {self.db_connection} with db_name: {self.db_file}")
+            return self.db_connection
 
     def close_connection(self) -> None:
-        if self._connection:
-            self._connection.close()
-            orm_logger.info(f"Closed connection {self._connection}")
-            self._connection = None
+        if self.db_connection:
+            self.db_connection.close()
+            orm_logger.info(f"Closed connection {self.db_connection}")
+            self.db_connection = None
 
     def db_create(self) -> None:
         pass
