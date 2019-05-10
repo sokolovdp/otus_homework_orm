@@ -1,5 +1,6 @@
 import sqlite_orm
 from sqlite_orm import exceptions, fields
+from .queryset import QuerySet
 
 
 class ModelInfo:
@@ -18,6 +19,9 @@ class ModelMeta(type):
     def __new__(mcs, name, bases, attrs):
         fields_map = dict()
         fields_db = dict()
+
+        if "id" not in attrs:
+            attrs["id"] = fields.IntegerField(is_pk=True)
 
         for name, field in attrs.items():
             if isinstance(field, fields.Field):
@@ -40,6 +44,7 @@ class ModelMeta(type):
 
 class OrmModel(metaclass=ModelMeta):
     _meta = ModelInfo(None)
+    id = None
 
     def __init__(self, **kwargs):
         meta = self._meta
@@ -72,18 +77,39 @@ class OrmModel(metaclass=ModelMeta):
     def update(self, **kwargs):
         pass
 
-    def save(self, **kwargs):
-        # if self.id is not None:
-        #     self.update(**kwargs)
-        # else:
-        #     self.insert(**kwargs)
+    def insert(self, **kwargs):
         pass
 
+    def save(self, **kwargs):
+        if self.id is not None:
+            self.update(**kwargs)
+        else:
+            self.insert(**kwargs)
+
     def delete(self):
-        # if self.id.value is None:
-        #     raise exceptions.OrmOperationalError("Can't delete uncreated record")
-        # db.execute_delete(db_table_name=self)
+        if self.id is None:
+            raise exceptions.OrmOperationalError("Can't delete uncreated record")
         pass
+
+    @classmethod
+    def first(cls) -> QuerySet:
+        return QuerySet(cls).first()
+
+    @classmethod
+    def filter(cls, *args, **kwargs) -> QuerySet:
+        return QuerySet(cls).filter(*args, **kwargs)
+
+    @classmethod
+    def exclude(cls, *args, **kwargs) -> QuerySet:
+        return QuerySet(cls).exclude(*args, **kwargs)
+
+    @classmethod
+    def all(cls) -> QuerySet:
+        return QuerySet(cls)
+
+    @classmethod
+    def get(cls, *args, **kwargs) -> QuerySet:
+        return QuerySet(cls).get(*args, **kwargs)
 
     def asdict(self):
         return self.__dict__

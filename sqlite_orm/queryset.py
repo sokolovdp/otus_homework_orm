@@ -1,3 +1,3 @@
-import pypika
-from .models import OrmModel
+from pypika import Query
 
+QuerySet = dict()
