@@ -1,10 +1,9 @@
 from datetime import datetime
 
-MAX_STRING_LENGTH = 4000
+MAX_STRING_LENGTH = 2000
 
 
 class Field:
-
     def __init__(self, py_type, **kwargs):
         self.is_pk = kwargs.pop('is_pk', False)
         self.nullable = kwargs.pop('nullable', False)

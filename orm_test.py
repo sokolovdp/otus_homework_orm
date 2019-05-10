@@ -16,7 +16,8 @@ if __name__ == "__main__":
 
     user = User(name='test', password=None)
 
-    ORM.start(db_file='data.sqlite',  create_db=True)
+    ORM.start(db_file='data.sqlite')
 
     ORM.stop()
 
+    pass
