@@ -61,6 +61,7 @@ class OrmModel(metaclass=ModelMeta):
             else:
                 raise exceptions.OrmConfigurationError(f"{name} is non nullable field, but no default value set")
 
+        sqlite_orm.ORM.register_table(meta)
         sqlite_orm.ORM.register_model(self)
 
     def create(self, **kwargs):

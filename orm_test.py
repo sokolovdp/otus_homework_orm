@@ -13,10 +13,12 @@ class User(models.OrmModel):
 
 
 if __name__ == "__main__":
-
-    user = User(name='test', password=None)
-
     ORM.start(db_file='data.sqlite')
+
+    user1 = User(name='test1', password=None)
+    user2 = User(name='test2', password=None)
+    user3 = User(name='test3', password=None)
+    user4 = User(name='test4', password=None)
 
     ORM.stop()
 
