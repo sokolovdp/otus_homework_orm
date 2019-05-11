@@ -27,6 +27,7 @@ class ModelMeta(type):
         for name, field in attrs.items():
             if isinstance(field, fields.Field):
                 fields_map[name] = field
+                field.model_field_name = name
                 if not field.db_field_name:
                     field.db_field_name = name
                 fields_db[name] = field.db_field_name

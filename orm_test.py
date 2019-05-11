@@ -17,12 +17,14 @@ if __name__ == "__main__":
     ORM.start(db_file='data.sqlite')
 
     user1 = User(name='test1', password=None)
+
+    print(user1.as_dict())
+
     user1.save()
-    user1.name = 'KUKU'
-    user1.save()
+
+    print(user1.as_dict())
 
     user2 = User.create(name='test3', password=None)
-
 
     ORM.stop()
 

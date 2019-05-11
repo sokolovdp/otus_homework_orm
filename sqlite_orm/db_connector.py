@@ -25,7 +25,7 @@ orm_logger = logging.getLogger('ORM')
 def to_db_datetime(field_object, value: Optional[datetime.datetime], instance) -> Optional[str]:
     if field_object.auto_now:
         value = datetime.datetime.now()
-        setattr(instance, field_object.db_field_name, value)
+        setattr(instance, field_object.model_field_name, value)
         return str(value)
     if isinstance(value, datetime.datetime):
         return str(value)
@@ -97,6 +97,7 @@ class SQLiteClient:
         return model_columns, db_columns
 
     def _prepare_insert_statement(self, instance, db_columns: List[str]) -> str:
+
         return str(
             Query.into(Table(instance._meta.db_table))
                 .columns(*db_columns)

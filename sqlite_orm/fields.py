@@ -13,6 +13,7 @@ class Field:
         self.db_field_name = kwargs.pop('db_field_name', None)
         self.max_length = kwargs.pop('max_length', None)
         self.auto_now = kwargs.pop('auto_now', False)
+        self.model_field_name = ''
 
     def to_db_value(self, value: Any, instance) -> Any:
         if value is None or type(value) == self.py_type:
