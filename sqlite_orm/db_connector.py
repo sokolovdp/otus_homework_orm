@@ -91,9 +91,9 @@ class SQLiteClient:
         return randint(1, 100000)  # TODO DEBUG
 
     def _run_query(self, sql: str) -> List[dict]:
-        orm_logger.info("%s: %s", sql)
-        result = [dict(row) for row in self.db_connection.execute_fetchall(sql)]
-        return result
+        orm_logger.info("%s", sql)
+        # result = [dict(row) for row in self.db_connection.execute_fetchall(sql)]
+        return None   # TODO DEBUG
 
     def _prepare_insert_columns(self, instance) -> Tuple[List[str], List[str]]:
         model_columns = instance._meta.fields_db.keys()
@@ -123,11 +123,11 @@ class SQLiteClient:
     def execute_update(self, instance, **kwargs):
         db_table = Table(instance._meta.db_table)
         query = Query.update(db_table)
-        for field, db_field in instance._meta.fields_db_projection.items():
+        for field, db_field in instance._meta.fields_db.items():
             field_object = instance._meta.fields_map[field]
             query = query.set(db_field, self._field_to_db(field_object, getattr(instance, field), instance))
         query = query.where(db_table.id == instance.id)
-        self.db.execute_query(query.get_sql())
+        self._run_query(query.get_sql())
         return instance
 
     def execute_delete(self, instance, **kwargs):
