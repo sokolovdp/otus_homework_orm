@@ -6,7 +6,7 @@ class User(models.OrmModel):
     id = fields.IntegerField(is_pk=True, db_field_name='user_id')
     name = fields.StringField(max_length=80, db_field_name='username')
     password = fields.StringField(max_length=20, nullable=True)
-    created = fields.DateTimeField(default=datetime.today(), db_field_name='create_date')
+    created = fields.DateTimeField(auto_now=True, db_field_name='create_date')
 
     class Meta:
         db_table = 'users'

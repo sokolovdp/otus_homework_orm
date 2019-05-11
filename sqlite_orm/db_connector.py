@@ -23,14 +23,10 @@ orm_logger = logging.getLogger('ORM')
 
 
 def to_db_datetime(field_object, value: Optional[datetime.datetime], instance) -> Optional[str]:
-    # if field_object.auto_now:
-    #     value = datetime.datetime.utcnow()
-    #     setattr(instance, field_object.model_field_name, value)
-    #     return str(value)
-    # if field_object.auto_now_add and getattr(instance, field_object.model_field_name) is None:
-    #     value = datetime.datetime.utcnow()
-    #     setattr(instance, field_object.model_field_name, value)
-    #     return str(value)
+    if field_object.auto_now:
+        value = datetime.datetime.now()
+        setattr(instance, field_object.db_field_name, value)
+        return str(value)
     if isinstance(value, datetime.datetime):
         return str(value)
     return None
