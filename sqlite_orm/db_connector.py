@@ -2,11 +2,14 @@ import logging
 import os
 import sqlite3
 import sys
+import datetime
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Iterable
+from random import randint
 
-from .fields import DateTimeField, IntegerField, StringField
+from pypika import Parameter, Table, Query
 
-# from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type
-# import pypika
+from .fields import DateTimeField, IntegerField, StringField, Field
+from .models import OrmModel, ModelInfo
 
 # from .exceptions import OrmOperationalError, OrmConfigurationError
 
@@ -19,10 +22,23 @@ logging.basicConfig(
 orm_logger = logging.getLogger('ORM')
 
 
+def to_db_datetime(field_object, value: Optional[datetime.datetime], instance) -> Optional[str]:
+    # if field_object.auto_now:
+    #     value = datetime.datetime.utcnow()
+    #     setattr(instance, field_object.model_field_name, value)
+    #     return str(value)
+    # if field_object.auto_now_add and getattr(instance, field_object.model_field_name) is None:
+    #     value = datetime.datetime.utcnow()
+    #     setattr(instance, field_object.model_field_name, value)
+    #     return str(value)
+    if isinstance(value, datetime.datetime):
+        return str(value)
+    return None
+
+
 class SqliteSchema:
     TABLE_CREATE_TEMPLATE = "CREATE TABLE IF NOT EXISTS '{table_name}' ({fields} PRIMARY KEY {name});"
     FIELD_TEMPLATE = '"{name}" {db_type} {nullable}'
-
     FIELD_TYPE_MAP = {
         IntegerField: "INTEGER",
         StringField: "TEXT",
@@ -31,12 +47,16 @@ class SqliteSchema:
 
 
 class SQLiteClient:
+    TO_DB_OVERRIDE = {
+        DateTimeField: to_db_datetime,
+    }
+
     def __init__(self, db_file: str) -> None:
         self.db_file = db_file
         self.db_connection = None
         self.db_schema = SqliteSchema
 
-    def open_connection(self, ):
+    def open_connection(self) -> Any:
         if not self.db_connection:
             self.db_connection = sqlite3.connect(self.db_file, isolation_level=None)
             self.db_connection.row_factory = sqlite3.Row
@@ -58,18 +78,65 @@ class SQLiteClient:
             os.remove(self.db_file)
         except FileNotFoundError:
             pass
-    #
-    # def execute_query(self, query: str) -> List[dict]:
-    #     with self.acquire_connection() as connection:
-    #         self.log.debug(query)
-    #         return [dict(row) for row in await connection.execute_fetchall(query)]
-    #
-    # def execute_script(self, query: str) -> None:
-    #     with self.acquire_connection() as connection:
-    #         self.log.debug(query)
-    #         await connection.executescript(query)
-    #
-    # def execute_select(self, query, custom_fields: list = None) -> list:
+
+    @classmethod
+    def _field_to_db(cls, field_object: Field, attr: Any, instance) -> Any:
+        if field_object.__class__ in cls.TO_DB_OVERRIDE:
+            return cls.TO_DB_OVERRIDE[field_object.__class__](field_object, attr, instance)
+        return field_object.to_db_value(attr, instance)
+
+    def _run_insert(self, sql, values) -> Optional[Iterable[sqlite3.Row]]:
+        orm_logger.info("%s: %s", sql, values)
+        # self.db_connection.
+        return randint(1, 100000)  # TODO DEBUG
+
+    def _run_query(self, sql: str) -> List[dict]:
+        orm_logger.info("%s: %s", sql)
+        result = [dict(row) for row in self.db_connection.execute_fetchall(sql)]
+        return result
+
+    def _prepare_insert_columns(self, instance) -> Tuple[List[str], List[str]]:
+        model_columns = instance._meta.fields_db.keys()
+        db_columns = [instance._meta.fields_db[c] for c in model_columns]
+        return model_columns, db_columns
+
+    def _prepare_insert_statement(self, instance, db_columns: List[str]) -> str:
+        return str(
+            Query.into(Table(instance._meta.db_table))
+                .columns(*db_columns)
+                .insert(*[Parameter("?") for _ in range(len(db_columns))])
+        )
+
+    def _prepare_insert_values(self, instance=None, model_columns: List[str] = None) -> list:
+        return [
+            self._field_to_db(instance._meta.fields_map[column], getattr(instance, column), instance)
+            for column in model_columns
+        ]
+
+    def execute_insert(self, instance: OrmModel, **kwargs) -> OrmModel:
+        model_columns, db_columns = self._prepare_insert_columns(instance)
+        query = self._prepare_insert_statement(instance, db_columns)
+        values = self._prepare_insert_values(instance=instance, model_columns=model_columns)
+        instance.id = self._run_insert(query, values)
+        return instance
+
+    def execute_update(self, instance, **kwargs):
+        db_table = Table(instance._meta.db_table)
+        query = Query.update(db_table)
+        for field, db_field in instance._meta.fields_db_projection.items():
+            field_object = instance._meta.fields_map[field]
+            query = query.set(db_field, self._field_to_db(field_object, getattr(instance, field), instance))
+        query = query.where(db_table.id == instance.id)
+        self.db.execute_query(query.get_sql())
+        return instance
+
+    def execute_delete(self, instance, **kwargs):
+        table = Table(instance._meta.table)
+        query = instance._meta.basequery.where(table.id == instance.id).delete()
+        self._run_query(query.get_sql())
+        return instance
+
+    # def _run_select(self, query, custom_fields: list = None) -> list:
     #     raw_results = self.db.execute_query(query.get_sql())
     #     instance_list = []
     #     for row in raw_results:
@@ -80,57 +147,3 @@ class SQLiteClient:
     #         instance_list.append(instance)
     #     return instance_list
     #
-    # def _prepare_insert_columns(self) -> Tuple[List[str], List[str]]:
-    #     regular_columns = []
-    #     for column in self.model._meta.fields_db_projection.keys():
-    #         field_object = self.model._meta.fields_map[column]
-    #         if not field_object.generated:
-    #             regular_columns.append(column)
-    #     result_columns = [self.model._meta.fields_db_projection[c] for c in regular_columns]
-    #     return regular_columns, result_columns
-    #
-    # def _prepare_insert_values(self, instance, regular_columns: List[str]) -> list:
-    #     return [
-    #         self._field_to_db(
-    #             self.model._meta.fields_map[column], getattr(instance, column), instance
-    #         )
-    #         for column in regular_columns
-    #     ]
-    #
-    #
-    # def execute_insert(self, query: str, values: list) -> int:
-    #     with self.acquire_connection() as connection:
-    #         self.log.debug("%s: %s", query, values)
-    #         return (connection.execute_insert(query, values))[0]
-    #
-    # def execute_insert2(self, instance):
-    #     key = "{}:{}".format(self.db.connection_name, self.model._meta.table)
-    #     if key not in INSERT_CACHE:
-    #         regular_columns, columns = self._prepare_insert_columns()
-    #         query = self._prepare_insert_statement(columns)
-    #         INSERT_CACHE[key] = regular_columns, columns, query
-    #     else:
-    #         regular_columns, columns, query = INSERT_CACHE[key]
-    #
-    #     values = self._prepare_insert_values(instance=instance, regular_columns=regular_columns)
-    #     instance.id = self.db.execute_insert(query, values)
-    #     return instance
-    #
-    # def execute_update(self, instance):
-    #     table = Table(self.model._meta.table)
-    #     query = self.db.query_class.update(table)
-    #     for field, db_field in self.model._meta.fields_db_projection.items():
-    #         field_object = self.model._meta.fields_map[field]
-    #         if not field_object.generated:
-    #             query = query.set(
-    #                 db_field, self._field_to_db(field_object, getattr(instance, field), instance)
-    #             )
-    #     query = query.where(table.id == instance.id)
-    #     self.db.execute_query(query.get_sql())
-    #     return instance
-    #
-    # def execute_delete(self, instance):
-    #     table = Table(self.model._meta.table)
-    #     query = self.model._meta.basequery.where(table.id == instance.id).delete()
-    #     self.db.execute_query(query.get_sql())
-    #     return instance

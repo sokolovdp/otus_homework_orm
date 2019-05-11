@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 MAX_STRING_LENGTH = 2000
 
@@ -11,6 +12,16 @@ class Field:
         self.py_type = py_type
         self.db_field_name = kwargs.pop('db_field_name', None)
         self.max_length = kwargs.pop('max_length', None)
+
+    def to_db_value(self, value: Any, instance) -> Any:
+        if value is None or type(value) == self.py_type:
+            return value
+        return self.py_type(value)
+
+    def to_python_value(self, value: Any) -> Any:
+        if value is None or isinstance(value, self.py_type):
+            return value
+        return self.py_type(value)
 
 
 class IntegerField(Field):

@@ -9,7 +9,8 @@ class User(models.OrmModel):
     created = fields.DateTimeField(default=datetime.today(), db_field_name='create_date')
 
     class Meta:
-        table = 'users'
+        db_table = 'users'
+        create = True  # create if not exists
 
 
 if __name__ == "__main__":

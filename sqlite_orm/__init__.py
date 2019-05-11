@@ -10,14 +10,14 @@ class ORM:
     _all_models = []
     _all_tables = defaultdict(models.ModelInfo)
     _db_connection = None
-    _db_client = None
+    db_client = None
 
     @classmethod
     def _create_connection(cls, bd_client, db_file: str = None, create_db=False):
         if bd_client == 'sqlite':
             if not create_db:
-                cls._db_client = db_connector.SQLiteClient(db_file=db_file)
-                cls._db_connection = cls._db_client.open_connection()
+                cls.db_client = db_connector.SQLiteClient(db_file=db_file)
+                cls._db_connection = cls.db_client.open_connection()
         else:
             raise exceptions.OrmConfigurationError('Only SQLite DB connection is implemented')
 
@@ -29,7 +29,7 @@ class ORM:
 
     @classmethod
     def _delete_connection(cls):
-        cls._db_client.close_connection()
+        cls.db_client.close_connection()
 
     @classmethod
     def _stop_models(cls):
@@ -54,11 +54,11 @@ class ORM:
     @classmethod
     def register_model(cls, model: models.OrmModel):
         model._meta.db_connection = cls._db_connection
+        model._meta.db_client = cls.db_client
         model._meta.started = cls._started
         cls._all_models.append(model)
 
     @classmethod
     def register_table(cls, table: models.ModelInfo):
-        cls._all_tables[table.db_table_name] = table
-
+        cls._all_tables[table.db_table] = table
 

@@ -6,7 +6,8 @@ from .queryset import QuerySet
 class ModelInfo:
 
     def __init__(self, meta):
-        self.db_table_name = getattr(meta, "table", None)
+        self.db_table = getattr(meta, "db_table", None)
+        self.create = getattr(meta, "create", False)
         self.fields = None
         self.fields_map = None
         self.fields_db = None
@@ -34,8 +35,8 @@ class ModelMeta(type):
         meta.fields_map = fields_map
         meta.fields = set(fields_map.keys())
         meta.fields_db = fields_db
+        meta.db_client = None
         meta.db_connection = None
-        meta.started = False
         attrs["_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
@@ -69,22 +70,39 @@ class OrmModel(metaclass=ModelMeta):
         sqlite_orm.ORM.register_table(meta)
         sqlite_orm.ORM.register_model(self)
 
+    def __str__(self) -> str:
+        return f"<{self.__class__.__name__}>"
+
+    def __repr__(self) -> str:
+        if self.id:
+            return f"<{self.__class__.__name__}: {self.id}>"
+        return f"<{self.__class__.__name__}>"
+
+    def __hash__(self) -> int:
+        if not self.id:
+            raise TypeError("Model instance without ID is not hashable")
+        return hash(self.__repr__())
+
+    def __eq__(self, other) -> bool:
+        return hash(self) == hash(other)
+
     @classmethod
     def create(cls, **kwargs):
         instance = cls(**kwargs)
-        instance.save()
+        instance.save(**kwargs)
+        return instance
 
-    def update(self, **kwargs):
-        pass
+    def _update(self, instance, **kwargs):
+        instance._meta.db_client.execute_update(instance, **kwargs)
 
-    def insert(self, **kwargs):
-        pass
+    def _insert(self, instance, **kwargs):
+        instance._meta.db_client.execute_insert(instance, **kwargs)
 
     def save(self, **kwargs):
         if self.id is not None:
-            self.update(**kwargs)
+            self._update(self, **kwargs)
         else:
-            self.insert(**kwargs)
+            self._insert(self, **kwargs)
 
     def delete(self):
         if self.id is None:
@@ -111,5 +129,5 @@ class OrmModel(metaclass=ModelMeta):
     def get(cls, *args, **kwargs) -> QuerySet:
         return QuerySet(cls).get(*args, **kwargs)
 
-    def asdict(self):
+    def as_dict(self):
         return self.__dict__
