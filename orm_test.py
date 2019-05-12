@@ -9,7 +9,7 @@ class User(models.OrmModel):
 
     class Meta:
         db_table = 'users'
-        create = True  # create if not exists
+        safe_create = True  # create if not exists
 
 
 if __name__ == "__main__":

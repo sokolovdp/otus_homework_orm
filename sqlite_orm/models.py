@@ -7,7 +7,7 @@ class ModelInfo:
 
     def __init__(self, meta):
         self.db_table = getattr(meta, "db_table", None)
-        self.create = getattr(meta, "create", False)
+        self.safe_create = getattr(meta, "safe_create", False)
         self.fields = None
         self.fields_map = None
         self.fields_db = None
