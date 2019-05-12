@@ -51,9 +51,9 @@ class ORM:
 
     @classmethod
     def generate_schemas(cls):
-        if len(models.ALL_TABLES) < 2:
+        if len(models.ALL_ORM_TABLES) < 2:
             raise exceptions.OrmOperationalError('No registered tables!')
-        for table in models.ALL_TABLES[1:]:
+        for table in models.ALL_ORM_TABLES[1:]:
             if table.model_meta.db_table in cls.all_tables.keys():
                 raise exceptions.OrmConfigurationError(f'Duplicated schema: {table.model_meta.db_table}')
             else:
