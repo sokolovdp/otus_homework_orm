@@ -12,7 +12,7 @@ class ModelInfo:
         self.fields_map = None
         self.fields_db = None
         self.started = None
-        self.db_connection = None
+        self.db_client = None
 
 
 class ModelMeta(type):
@@ -37,19 +37,18 @@ class ModelMeta(type):
         meta.fields = set(fields_map.keys())
         meta.fields_db = fields_db
         meta.db_client = None
-        meta.db_connection = None
-        attrs["_meta"] = meta
+        attrs["model_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
         return new_class
 
 
 class OrmModel(metaclass=ModelMeta):
-    _meta = ModelInfo(None)
+    model_meta = ModelInfo(None)
     id = None
 
     def __init__(self, **kwargs):
-        meta = self._meta
+        meta = self.model_meta
         initiated_fields = set()
         for key, value in kwargs.items():
             if key in meta.fields:
@@ -94,10 +93,10 @@ class OrmModel(metaclass=ModelMeta):
         return instance
 
     def _update(self, instance, **kwargs):
-        instance._meta.db_client.execute_update(instance, **kwargs)
+        instance.model_meta.db_client.execute_update(instance, **kwargs)
 
     def _insert(self, instance, **kwargs):
-        instance._meta.db_client.execute_insert(instance, **kwargs)
+        instance.model_meta.db_client.execute_insert(instance, **kwargs)
 
     def save(self, **kwargs):
         if self.id is not None:
