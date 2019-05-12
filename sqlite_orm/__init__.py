@@ -1,5 +1,4 @@
-from collections import defaultdict
-from sqlite_orm import fields, models, exceptions, db_connector
+from sqlite_orm import db_connector, exceptions, fields, models
 from .db_connector import orm_logger
 
 __all__ = ['ORM', 'fields', 'models', 'exceptions']

@@ -89,7 +89,7 @@ class SqliteSchema:
         )
         return table_create_string
 
-    def get_create_schema_sql(self, safe=True) -> str:
+    def get_create_schema_sql(self) -> str:
         import sqlite_orm
         models_to_create = []
 
