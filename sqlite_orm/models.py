@@ -2,6 +2,8 @@ import sqlite_orm
 from sqlite_orm import exceptions, fields
 from .queryset import QuerySet
 
+ALL_TABLES = []
+
 
 class ModelInfo:
 
@@ -18,6 +20,7 @@ class ModelInfo:
 class ModelMeta(type):
 
     def __new__(mcs, name, bases, attrs):
+        global ALL_TABLES
         fields_map = dict()
         fields_db = dict()
 
@@ -40,6 +43,7 @@ class ModelMeta(type):
         attrs["model_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
+        ALL_TABLES.append(new_class)
         return new_class
 
 
@@ -66,9 +70,7 @@ class OrmModel(metaclass=ModelMeta):
                 setattr(self, name, None)
             else:
                 raise exceptions.OrmConfigurationError(f"{name} is non nullable field, but no default value set")
-
-        sqlite_orm.ORM.register_table(meta)
-        sqlite_orm.ORM.register_model(self)
+        sqlite_orm.ORM._register_model(self)
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}>"

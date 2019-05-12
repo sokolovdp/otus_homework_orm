@@ -34,7 +34,7 @@ def to_db_datetime(field_object, value: Optional[datetime.datetime], instance) -
 
 class SqliteSchema:
     TABLE_CREATE_TEMPLATE = "CREATE TABLE {exists} '{table_name}' ({fields};"
-    FIELD_TEMPLATE = '"{name}" {db_type} {nullable}'
+    FIELD_TEMPLATE = '"{name}" {db_type} {nullable} {unique}'
     FIELD_TYPE_MAP = {
         IntegerField: "INTEGER",
         StringField: "TEXT",
@@ -51,7 +51,7 @@ class SqliteSchema:
     def get_field_string(self, db_field: str, field_type: str, nullable: str, unique: str) -> str:
         field_creation_string = self.FIELD_TEMPLATE.format(
             name=db_field,
-            type=field_type,
+            db_type=field_type,
             nullable=nullable,
             unique=unique
         ).strip()
@@ -63,9 +63,9 @@ class SqliteSchema:
     def get_unique_string(self, field_names: List[str]) -> str:
         return self.UNIQUE_CREATE_TEMPLATE.format(fields=", ".join(field_names))
 
-    def get_table_sql(self, model, safe=True) -> str:
+    def get_table_sql(self, model) -> str:
         fields_to_create = []
-        for field_name, db_field in model.model_meta.fields_db_projection.items():
+        for field_name, db_field in model.model_meta.fields_db.items():
             field_object = model.model_meta.fields_map[field_name]
             if isinstance(field_object, IntegerField) and field_object.is_pk:
                 fields_to_create.append(self.get_primary_key_string(field_name))
@@ -83,8 +83,8 @@ class SqliteSchema:
 
         table_fields_string = ", ".join(fields_to_create)
         table_create_string = self.TABLE_CREATE_TEMPLATE.format(
-            exists="IF NOT EXISTS " if safe else "",
-            table_name=model.model_meta.table,
+            exists="IF NOT EXISTS " if model.model_meta.safe_create else "",
+            table_name=model.model_meta.db_table,
             fields=table_fields_string,
         )
         return table_create_string
@@ -94,15 +94,19 @@ class SqliteSchema:
         models_to_create = []
 
         for model in sqlite_orm.ORM.all_tables.values():
-            if model.model_meta.db == self.client:
-                models_to_create.append(model)
+            models_to_create.append(model)
 
         tables_to_create = []
         for model in models_to_create:
-            tables_to_create.append(self.get_table_sql(model, safe))
+            tables_to_create.append(self.get_table_sql(model))
 
         schema_creation_string = " ".join(tables_to_create)
         return schema_creation_string
+
+    def create_schemas(self):
+        create_schemas_sql = self.get_create_schema_sql()
+        orm_logger.info(f"Schemas SQL: {create_schemas_sql}")
+        # run sql str
 
 
 class SQLiteClient:
