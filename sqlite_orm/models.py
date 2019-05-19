@@ -113,18 +113,6 @@ class OrmModel(metaclass=ModelMeta):
         pass
 
     @classmethod
-    def first(cls) -> QuerySet:
-        return QuerySet(cls).first()
-
-    @classmethod
-    def filter(cls, *args, **kwargs) -> QuerySet:
-        return QuerySet(cls).filter(*args, **kwargs)
-
-    @classmethod
-    def exclude(cls, *args, **kwargs) -> QuerySet:
-        return QuerySet(cls).exclude(*args, **kwargs)
-
-    @classmethod
     def all(cls) -> QuerySet:
         return QuerySet(cls)
 

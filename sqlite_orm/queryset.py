@@ -1,7 +1,7 @@
 from typing import Any, Dict, Generator, List, Optional, Set, Tuple
 from copy import copy
 
-from pypika import Query
+from pypika import JoinType, Order, Query, Table
 
 from .models import OrmModel
 from .fields import Field
@@ -40,38 +40,19 @@ class QuerySet:
         return queryset
 
     def resolve_ordering(self, model, orderings, annotations) -> None:
-        #table = Table(model._meta.table)
+        table = Table(model._meta.table)
         for ordering in orderings:
             field_name = ordering[0]
-            if field_name not in model._meta.fields:
+            if field_name in model._meta.fetch_fields:
                 raise OrmOperationalError(
-                    "Unknown field {} for model {}".format(field_name, self.model.__name__)
+                    "Filtering by relation is not possible. Filter by nested field of related model"
                 )
-            self.query = self.query.orderby(getattr(table, ordering[0]), order=ordering[1])
-
-    def _filter_or_exclude(self, *args, negate: bool, **kwargs):
-        queryset = self._clone()
-        for arg in args:
-            if not isinstance(arg, Q):
-                raise TypeError("expected Q objects as args")
-            if negate:
-                queryset._q_objects.append(~arg)
             else:
-                queryset._q_objects.append(arg)
-
-        for key, value in kwargs.items():
-            if negate:
-                queryset._q_objects.append(~Q(**{key: value}))
-            else:
-                queryset._q_objects.append(Q(**{key: value}))
-
-        return queryset
-
-    def filter(self, *args, **kwargs):
-        return self._filter_or_exclude(negate=False, *args, **kwargs)
-
-    def exclude(self, *args, **kwargs):
-        return self._filter_or_exclude(negate=True, *args, **kwargs)
+                if field_name not in model._meta.fields:
+                    raise OrmOperationalError(
+                        "Unknown field {} for model {}".format(field_name, self.model.__name__)
+                    )
+                self.query = self.query.orderby(getattr(table, ordering[0]), order=ordering[1])
 
     def order_by(self, *orderings: str):
         queryset = self._clone()
@@ -83,19 +64,11 @@ class QuerySet:
                 order_type = Order.desc
             else:
                 field_name = ordering
-
-            if not (
-                field_name.split("__")[0] in self.model._meta.fields
-                or field_name in self._annotations
-            ):
-                raise FieldError(
-                    "Unknown field {} for model {}".format(field_name, self.model.__name__)
-                )
             new_ordering.append((field_name, order_type))
         queryset._orderings = new_ordering
         return queryset
 
-    def limit(self, limit: int) -> "QuerySet":
+    def limit(self, limit: int):
         """
         Limits QuerySet to given length.
         """
@@ -103,23 +76,14 @@ class QuerySet:
         queryset._limit = limit
         return queryset
 
-    def all(self) -> "QuerySet":
+    def all(self):
         """
         Return the whole QuerySet.
         Essentially a no-op except as the only operation.
         """
         return self._clone()
 
-    def first(self) -> "QuerySet":
-        """
-        Limit queryset to one object and return one object instead of list.
-        """
-        queryset = self._clone()
-        queryset._limit = 1
-        queryset._single = True
-        return queryset
-
-    def get(self, *args, **kwargs) -> "QuerySet":
+    def get(self, *args, **kwargs):
         """
         Fetch exactly one object matching the parameters.
         """
@@ -133,32 +97,27 @@ class QuerySet:
         self.resolve_filters(
             model=self.model,
             q_objects=self._q_objects,
-            annotations=self._annotations,
             custom_filters=self._custom_filters,
         )
         if self._limit:
             self.query = self.query.limit(self._limit)
-        self.resolve_ordering(self.model, self._orderings, self._annotations)
+        self.resolve_ordering(self.model)
         return self.query
 
     def _execute(self):
         instance_list = self._db.executor_class(
             model=self.model,
             db=self._db,
-            prefetch_map=self._prefetch_map,
-            prefetch_queries=self._prefetch_queries,
-        ).execute_select(self.query, custom_fields=list(self._annotations.keys()))
+        ).execute_select(self.query)
         if not instance_list:
             if self._get:
-                raise DoesNotExist("Object does not exist")
-            if self._single:
-                return None
+                raise OrmOperationalError("Object does not exist")
+
             return []
         elif self._get:
             if len(instance_list) > 1:
-                raise MultipleObjectsReturned("Multiple objects returned, expected exactly one")
+                raise OrmOperationalError("Multiple objects returned, expected exactly one")
             return instance_list[0]
-        elif self._single:
-            return instance_list[0]
+
         return instance_list
 
