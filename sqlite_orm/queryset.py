@@ -6,42 +6,25 @@ from pypika import Query
 from .models import OrmModel
 from .fields import Field
 from .db_connector import SQLiteClient
+from .exceptions import OrmOperationalError
 
 
-class BaseQuery:
+class QuerySet:
 
     def __init__(self, model) -> None:
-        self._joined_tables = []  # type: List[Table]
         self.model = model
-        self.query = model._meta.basequery  # type: Query
-        self._db = None  # type: Optional[SQLiteClient]
-        self.capabilities = model._meta.db.capabilities
-
-    def resolve_ordering(self, model, orderings, annotations) -> None:
-        table = Table(model._meta.table)
-        for ordering in orderings:
-            field_name = ordering[0]
-            if field_name not in model._meta.fields:
-                raise FieldError(
-                    "Unknown field {} for model {}".format(field_name, self.model.__name__)
-                )
-            self.query = self.query.orderby(getattr(table, ordering[0]), order=ordering[1])
-
-
-class QuerySet(BaseQuery):
-
-    def __init__(self, model) -> None:
-        super().__init__(model)
+        self.query = model._meta.basequery
+        self._db = None
         self.fields = model._meta.db_fields
 
-        self._get = False  # type: bool
-        self._limit = None  # type: Optional[int]
-        self._filter_kwargs = {}  # type: Dict[str, Any]
-        self._q_objects = []  # type: List[Q]
-        self._having = {}  # type: Dict[str, Any]
-        self._custom_filters = {}  # type: Dict[str, dict]
+        self._get = False
+        self._limit = None
+        self._filter_kwargs = {}
+        self._q_objects = []
+        self._having = {}
+        self._custom_filters = {}
 
-    def _clone(self) -> "QuerySet":
+    def _clone(self):
         queryset = QuerySet.__new__(QuerySet)
         queryset._db = self._db
         queryset.fields = self.fields
@@ -55,6 +38,16 @@ class QuerySet(BaseQuery):
         queryset._having = copy(self._having)
         queryset._custom_filters = copy(self._custom_filters)
         return queryset
+
+    def resolve_ordering(self, model, orderings, annotations) -> None:
+        #table = Table(model._meta.table)
+        for ordering in orderings:
+            field_name = ordering[0]
+            if field_name not in model._meta.fields:
+                raise OrmOperationalError(
+                    "Unknown field {} for model {}".format(field_name, self.model.__name__)
+                )
+            self.query = self.query.orderby(getattr(table, ordering[0]), order=ordering[1])
 
     def _filter_or_exclude(self, *args, negate: bool, **kwargs):
         queryset = self._clone()
@@ -74,34 +67,13 @@ class QuerySet(BaseQuery):
 
         return queryset
 
-    def filter(self, *args, **kwargs) -> "QuerySet":
-        """
-        Filters QuerySet by given kwargs. You can filter by related objects like this:
-
-        .. code-block:: python3
-
-            Team.filter(events__tournament__name='Test')
-
-        You can also pass Q objects to filters as args.
-        """
+    def filter(self, *args, **kwargs):
         return self._filter_or_exclude(negate=False, *args, **kwargs)
 
-    def exclude(self, *args, **kwargs) -> "QuerySet":
-        """
-        Same as .filter(), but with appends all args with NOT
-        """
+    def exclude(self, *args, **kwargs):
         return self._filter_or_exclude(negate=True, *args, **kwargs)
 
-    def order_by(self, *orderings: str) -> "QuerySet":
-        """
-        Accept args to filter by in format like this:
-
-        .. code-block:: python3
-
-            .order_by('name', '-tournament__name')
-
-        Supports ordering by related models too.
-        """
+    def order_by(self, *orderings: str):
         queryset = self._clone()
         new_ordering = []
         for ordering in orderings:

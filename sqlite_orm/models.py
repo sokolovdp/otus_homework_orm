@@ -15,6 +15,7 @@ class ModelInfo:
         self.fields_db = None
         self.started = None
         self.db_client = None
+        self.basequery = None
 
 
 class ModelMeta(type):
