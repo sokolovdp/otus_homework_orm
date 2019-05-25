@@ -41,7 +41,6 @@ class ModelMeta(type):
         meta.fields = set(fields_map.keys())
         meta.fields_db = fields_db
         meta.db_client = None
-        meta.basequery = Query.select()
         attrs["model_meta"] = meta
 
         new_class = super().__new__(mcs, name, bases, attrs)
@@ -120,4 +119,5 @@ class OrmModel(metaclass=ModelMeta):
     @classmethod
     def select(cls, *args, **kwargs):
         return cls.model_meta.db_client.execute_select(cls, *args, **kwargs)
+
 

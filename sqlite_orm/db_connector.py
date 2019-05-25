@@ -195,14 +195,14 @@ class SQLiteClient:
 
     def execute_delete(self, instance, **kwargs):
         db_table = Table(instance.model_meta.db_table)
-        query = instance.model_meta.basequery.where(db_table.id == instance.id).delete()
+        query = Query.select().where(db_table.id == instance.id).delete()
         self._run_query(query.get_sql())
         return instance
 
-    def execute_select(self, model, **kwargs) -> list:
+    def execute_select(self, model, *args, **kwargs) -> list:
         instance_list = []
-        db_table = Table(model.model_meta.db_table)
-        # raw_results = self.db.execute_query(query.get_sql())
+        query = Query.from_(model.model_meta.db_table).select(*args).where(**kwargs)
+        raw_results = self._run_query(query.get_sql())
         # for row in raw_results:
         #     instance = self.model(**row)
         #     if custom_fields:
