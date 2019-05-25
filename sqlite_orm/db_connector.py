@@ -1,23 +1,21 @@
+import datetime
 import logging
 import os
 import sqlite3
 import sys
-import datetime
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Iterable
 from random import randint
+from typing import Any, Iterable, List, Optional, Tuple
 
-from pypika import Parameter, Table, Query, Criterion
+from pypika import Parameter, Query, Table
 
-from .fields import DateTimeField, IntegerField, StringField, Field
-from .models import OrmModel, ModelInfo
-
-from .exceptions import OrmOperationalError, OrmConfigurationError
-
+from .fields import DateTimeField, Field, IntegerField, StringField
+from .models import OrmModel
 
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    # format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(name)s - %(levelname)s - %(message)s'
 )
 orm_logger = logging.getLogger('ORM')
 
