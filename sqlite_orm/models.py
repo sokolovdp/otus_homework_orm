@@ -72,7 +72,7 @@ class OrmModel(metaclass=ModelMeta):
                 setattr(self, name, None)
             else:
                 raise exceptions.OrmConfigurationError(f"{name} is non nullable field, but no default value set")
-        sqlite_orm.ORM._register_model(self)
+        sqlite_orm.ORM.register_model(self)
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}>"
@@ -89,6 +89,9 @@ class OrmModel(metaclass=ModelMeta):
 
     def __eq__(self, other) -> bool:
         return hash(self) == hash(other)
+
+    def as_dict(self):
+        return self.__dict__
 
     @classmethod
     def create(cls, **kwargs):
@@ -114,8 +117,7 @@ class OrmModel(metaclass=ModelMeta):
         else:
             return self.model_meta.db_client.execute_delete(self)
 
-    def select(self, *args, **kwargs):
-        return self.model_meta.db_client.execute_select(self, *args, **kwargs)
+    @classmethod
+    def select(cls, *args, **kwargs):
+        return cls.model_meta.db_client.execute_select(*args, **kwargs)
 
-    def as_dict(self):
-        return self.__dict__

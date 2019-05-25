@@ -28,7 +28,7 @@ class ORM:
         cls.db_connection = None
 
     @classmethod
-    def _register_model(cls, model: models.OrmModel):
+    def register_model(cls, model: models.OrmModel):
         model.model_meta.db_client = cls.db_client
         model.model_meta.started = cls.started
 
