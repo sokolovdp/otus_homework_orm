@@ -144,7 +144,7 @@ class SQLiteClient:
     def _field_to_db(cls, field_object: Field, attr: Any, instance) -> Any:
         if field_object.__class__ in cls.TO_DB_OVERRIDE:
             return cls.TO_DB_OVERRIDE[field_object.__class__](field_object, attr, instance)
-        return field_object.to_db_value(attr, instance)
+        return field_object.to_db_value(attr)
 
     def _run_insert(self, sql, values) -> Optional[Iterable[sqlite3.Row]]:
         orm_logger.info("%s: %s", sql, values)

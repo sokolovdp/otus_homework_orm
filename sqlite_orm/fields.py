@@ -1,7 +1,12 @@
 from datetime import datetime
 from typing import Any
 
+from sqlite_orm import exceptions
+
 MAX_STRING_LENGTH = 2000
+CASCADE = "CASCADE"
+RESTRICT = "RESTRICT"
+SET_NULL = "SET NULL"
 
 
 class Field:
@@ -16,7 +21,7 @@ class Field:
         self.unique = kwargs.pop('unique', False)
         self.model_field_name = ''
 
-    def to_db_value(self, value: Any, instance) -> Any:
+    def to_db_value(self, value: Any) -> Any:
         if value is None or type(value) == self.py_type:
             return value
         return self.py_type(value)
@@ -42,3 +47,19 @@ class StringField(Field):
 class DateTimeField(Field):
     def __init__(self, **kwargs):
         super().__init__(datetime, **kwargs)
+
+
+class ForeignKeyField(Field):
+    def __init__(self, model_name: str, related_name: str = None, on_delete: str = CASCADE, **kwargs):
+        super().__init__(**kwargs)
+        self.model_name = model_name
+        self.related_name = related_name
+        if on_delete not in {CASCADE, RESTRICT, SET_NULL}:
+            raise exceptions.OrmConfigurationError("on_delete can only be CASCADE, RESTRICT or SET_NULL")
+        if on_delete == SET_NULL and not bool(kwargs.get("nullable")):
+            raise exceptions.OrmConfigurationError("If on_delete is SET_NULL, then field must have null=True set")
+        self.on_delete = on_delete
+
+
+class ManyToManyField(Field):
+    pass
