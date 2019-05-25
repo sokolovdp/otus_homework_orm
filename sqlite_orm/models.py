@@ -1,6 +1,5 @@
 import sqlite_orm
 from sqlite_orm import exceptions, fields
-from pypika import Query
 
 ALL_ORM_TABLES = []
 
