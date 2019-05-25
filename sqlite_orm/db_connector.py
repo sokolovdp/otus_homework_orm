@@ -199,14 +199,15 @@ class SQLiteClient:
         self._run_query(query.get_sql())
         return instance
 
-    # def _run_select(self, query, custom_fields: list = None) -> list:
-    #     raw_results = self.db.execute_query(query.get_sql())
-    #     instance_list = []
-    #     for row in raw_results:
-    #         instance = self.model(**row)
-    #         if custom_fields:
-    #             for field in custom_fields:
-    #                 setattr(instance, field, row[field])
-    #         instance_list.append(instance)
-    #     return instance_list
-    #
+    def execute_select(self, instance, custom_fields: list = None) -> list:
+        Table(instance.model_meta.table)
+        raw_results = self.db.execute_query(query.get_sql())
+        instance_list = []
+        for row in raw_results:
+            instance = self.model(**row)
+            if custom_fields:
+                for field in custom_fields:
+                    setattr(instance, field, row[field])
+            instance_list.append(instance)
+        return instance_list
+

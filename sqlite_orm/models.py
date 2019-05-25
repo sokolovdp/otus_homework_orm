@@ -1,6 +1,5 @@
 import sqlite_orm
 from sqlite_orm import exceptions, fields
-from .queryset import QuerySet
 
 ALL_ORM_TABLES = []
 
@@ -110,15 +109,11 @@ class OrmModel(metaclass=ModelMeta):
     def delete(self):
         if self.id is None:
             raise exceptions.OrmOperationalError("Can't delete uncreated record")
-        pass
+        else:
+            return self.model_meta.db_client.execute_delete(self)
 
-    @classmethod
-    def all(cls) -> QuerySet:
-        return QuerySet(cls)
-
-    @classmethod
-    def get(cls, *args, **kwargs) -> QuerySet:
-        return QuerySet(cls).get(*args, **kwargs)
+    def select(self, *args, **kwargs):
+        return self.model_meta.db_client.execute_select(self, *args, **kwargs)
 
     def as_dict(self):
         return self.__dict__

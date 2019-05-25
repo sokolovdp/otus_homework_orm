@@ -21,5 +21,3 @@ if __name__ == "__main__":
     user2 = User.create(name='test2', password=None)
 
     ORM.stop()
-
-
