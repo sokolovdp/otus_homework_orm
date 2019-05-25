@@ -103,7 +103,7 @@ class SqliteSchema:
 
     def create_schemas(self):
         create_schemas_sql = self.get_create_schema_sql()
-        orm_logger.info(f"Schemas SQL: {create_schemas_sql}")
+        orm_logger.info(f"{create_schemas_sql}")
         # run sql str
 
 
