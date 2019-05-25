@@ -37,7 +37,7 @@ User.select('*', name='dima', password='test')
 ORM.stop()
 ```
 
-## Project is still in progress, current test results are:
+## Current test results are:
 ```
 ORM - INFO - Created connection <sqlite3.Connection object at 0x7fc2431bb570> with db_name: data.sqlite
 ORM - INFO - ORM started, client: SQLite3,  db_file: data.sqlite
