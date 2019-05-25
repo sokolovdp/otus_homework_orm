@@ -194,20 +194,20 @@ class SQLiteClient:
         return instance
 
     def execute_delete(self, instance, **kwargs):
-        table = Table(instance.model_meta.table)
-        query = instance.model_meta.basequery.where(table.id == instance.id).delete()
+        db_table = Table(instance.model_meta.db_table)
+        query = instance.model_meta.basequery.where(db_table.id == instance.id).delete()
         self._run_query(query.get_sql())
         return instance
 
     def execute_select(self, instance, custom_fields: list = None) -> list:
-        Table(instance.model_meta.table)
-        raw_results = self.db.execute_query(query.get_sql())
         instance_list = []
-        for row in raw_results:
-            instance = self.model(**row)
-            if custom_fields:
-                for field in custom_fields:
-                    setattr(instance, field, row[field])
-            instance_list.append(instance)
+        # db_table = Table(instance.model_meta.db_table)
+        # raw_results = self.db.execute_query(query.get_sql())
+        # for row in raw_results:
+        #     instance = self.model(**row)
+        #     if custom_fields:
+        #         for field in custom_fields:
+        #             setattr(instance, field, row[field])
+        #     instance_list.append(instance)
         return instance_list
 
