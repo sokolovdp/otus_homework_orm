@@ -199,9 +199,9 @@ class SQLiteClient:
         self._run_query(query.get_sql())
         return instance
 
-    def execute_select(self, instance, custom_fields: list = None) -> list:
+    def execute_select(self, model, **kwargs) -> list:
         instance_list = []
-        # db_table = Table(instance.model_meta.db_table)
+        db_table = Table(model.model_meta.db_table)
         # raw_results = self.db.execute_query(query.get_sql())
         # for row in raw_results:
         #     instance = self.model(**row)

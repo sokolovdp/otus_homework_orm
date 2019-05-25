@@ -119,5 +119,5 @@ class OrmModel(metaclass=ModelMeta):
 
     @classmethod
     def select(cls, *args, **kwargs):
-        return cls.model_meta.db_client.execute_select(*args, **kwargs)
+        return cls.model_meta.db_client.execute_select(cls, *args, **kwargs)
 
