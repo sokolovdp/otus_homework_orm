@@ -28,6 +28,6 @@ if __name__ == "__main__":
     # Delete record
     user1.delete()
 
-    User.select('*', name='dima')
+    User.select('*', name='dima', password='test')
 
     ORM.stop()

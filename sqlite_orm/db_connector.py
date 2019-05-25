@@ -6,7 +6,7 @@ import datetime
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type, Iterable
 from random import randint
 
-from pypika import Parameter, Table, Query
+from pypika import Parameter, Table, Query, Criterion
 
 from .fields import DateTimeField, IntegerField, StringField, Field
 from .models import OrmModel, ModelInfo
@@ -201,7 +201,10 @@ class SQLiteClient:
 
     def execute_select(self, model, *args, **kwargs) -> list:
         instance_list = []
-        query = Query.from_(model.model_meta.db_table).select(*args).where(**kwargs)
+        db_table = Table(model.model_meta.db_table)
+        query = Query.from_(db_table).select(*args)
+        for k, v in kwargs.items():
+            query = query.where(db_table.field(k) == v)
         raw_results = self._run_query(query.get_sql())
         # for row in raw_results:
         #     instance = self.model(**row)
