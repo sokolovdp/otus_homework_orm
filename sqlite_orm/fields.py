@@ -57,7 +57,7 @@ class ForeignKeyField(Field):
         if on_delete not in {CASCADE, RESTRICT, SET_NULL}:
             raise exceptions.OrmConfigurationError("on_delete can only be CASCADE, RESTRICT or SET_NULL")
         if on_delete == SET_NULL and not bool(kwargs.get("nullable")):
-            raise exceptions.OrmConfigurationError("If on_delete is SET_NULL, then field must have null=True set")
+            raise exceptions.OrmConfigurationError("If SET_NULL, then field must have nullable=True set")
         self.on_delete = on_delete
 
 
