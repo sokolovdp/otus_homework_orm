@@ -46,7 +46,7 @@ class ORM:
     def stop(cls):
         cls._delete_connection()
         cls.started = False
-        orm_logger.info(f'ORM stops,  stopped: {len(cls.all_tables)} tables(s)')
+        orm_logger.info(f'ORM stops,  stopped: {len(cls.all_tables)} table(s)')
 
     @classmethod
     def generate_schemas(cls):
