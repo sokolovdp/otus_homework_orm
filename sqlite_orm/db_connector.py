@@ -151,7 +151,7 @@ class SQLiteClient:
         # self.db_connection.
         return randint(1, 100000)  # TODO DEBUG
 
-    def _run_query(self, sql: str) -> List[dict]:
+    def _run_query(self, sql: str) -> Optional[List[dict]]:
         orm_logger.info("%s", sql)
         # result = [dict(row) for row in self.db_connection.execute_fetchall(sql)]
         return None  # TODO DEBUG
