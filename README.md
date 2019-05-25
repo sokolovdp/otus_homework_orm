@@ -1,9 +1,8 @@
-# Otus SQLite ORM homework project is an implementation of simple ORM. For SQL string generation is used package PYPIKA. 
+# Otus SQLite ORM homework project is an implementation of simple ORM. For SQL string generation is used package *PYPIKA*.  
 
 ##  Basic ORM test:
 ```
 from sqlite_orm import fields, models, ORM
-
 
 class User(models.OrmModel):
     id = fields.IntegerField(is_pk=True, db_field_name='user_id')
@@ -14,7 +13,6 @@ class User(models.OrmModel):
     class Meta:
         db_table = 'users'
         safe_create = True  # create if not exists
-
 
 ORM.start(db_file='data.sqlite')
 ORM.generate_schemas()
@@ -37,7 +35,7 @@ User.select('*', name='dima', password='test')
 ORM.stop()
 ```
 
-## Current test results are:
+## Test results are:
 ```
 ORM - INFO - Created connection <sqlite3.Connection object at 0x7fc2431bb570> with db_name: data.sqlite
 ORM - INFO - ORM started, client: SQLite3,  db_file: data.sqlite
