@@ -1,11 +1,7 @@
-from typing import Any, Dict, Generator, List, Optional, Set, Tuple
 from copy import copy
 
-from pypika import JoinType, Order, Query, Table
+from pypika import Order, Query, Table
 
-from .models import OrmModel
-from .fields import Field
-from .db_connector import SQLiteClient
 from .exceptions import OrmOperationalError
 
 
@@ -39,7 +35,7 @@ class QuerySet:
         queryset._custom_filters = copy(self._custom_filters)
         return queryset
 
-    def resolve_ordering(self, model, orderings, annotations) -> None:
+    def resolve_ordering(self, model, orderings) -> None:
         table = Table(model._meta.table)
         for ordering in orderings:
             field_name = ordering[0]
