@@ -1,8 +1,26 @@
 # Otus SQLite ORM homework project is an implementation of simple ORM. For SQL string generation is used package PYPIKA. 
 
-##  To run test:
+##  Basic ORM test:
 ```
-python orm_test.py
+ORM.start(db_file='data.sqlite')
+ORM.generate_schemas()
+
+# Create records for the model
+user1 = User(name='test1', password=None)
+user1.save()
+user2 = User.create(name='test2', password=None)
+
+# Update record
+user1.password = 'password'
+user1.save()
+
+# Delete record
+user1.delete()
+
+# Select record(s)
+User.select('*', name='dima', password='test')
+
+ORM.stop()
 ```
 
 ## Project is still in progress, current test results are:
