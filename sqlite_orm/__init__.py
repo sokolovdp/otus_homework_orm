@@ -32,10 +32,6 @@ class ORM:
         model.model_meta.db_client = cls.db_client
         model.model_meta.started = cls.started
 
-    # @classmethod
-    # def _register_table(cls, table: type):
-    #     cls.all_tables.append(table)
-
     @classmethod
     def start(cls, db_file: str = 'data.sqlite', create_db=False):
         cls._create_connection('sqlite', db_file=db_file, create_db=create_db)

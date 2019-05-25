@@ -15,5 +15,5 @@ ORM - INFO - UPDATE "users" SET "user_id"=416,"username"='test1',"password"='pas
 ORM - INFO - DELETE WHERE "users"."id"=416
 ORM - INFO - SELECT * FROM "users" WHERE "name"='dima' AND "password"='test'
 ORM - INFO - Closed connection <sqlite3.Connection object at 0x7fe9c98ba490>
-ORM - INFO - ORM stops,  stopped: 1 tables(s)
+ORM - INFO - ORM stops,  stopped: 1 table(s)
 ```
