@@ -20,6 +20,5 @@ if __name__ == "__main__":
     user1.save()
     user2 = User.create(name='test2', password=None)
     user1.delete()
-    user2.delete()
 
     ORM.stop()
