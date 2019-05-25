@@ -12,25 +12,14 @@ class User(models.OrmModel):
         safe_create = True  # create if not exists
 
 
-class User2(models.OrmModel):
-    id = fields.IntegerField(is_pk=True, db_field_name='user_id')
-    name = fields.StringField(max_length=80, db_field_name='username')
-    password = fields.StringField(max_length=20, nullable=True)
-    created = fields.DateTimeField(auto_now=True, db_field_name='create_date')
-
-    class Meta:
-        db_table = 'users2'
-        safe_create = True  # create if not exists
-
-
 if __name__ == "__main__":
     ORM.start(db_file='data.sqlite')
     ORM.generate_schemas()
 
     user1 = User(name='test1', password=None)
     user1.save()
-    user2 = User.create(name='test3', password=None)
+    user2 = User.create(name='test2', password=None)
 
     ORM.stop()
 
-    pass
+
