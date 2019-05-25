@@ -1,4 +1,6 @@
-# Otus SQLite ORM homework project is an implementation of simple ORM. For SQL string generation is used package *PYPIKA*.  
+# Otus SQLite ORM homework project is an implementation of simple ORM. 
+
+## For SQL string generation is used package *PYPIKA*.  
 
 ##  Basic ORM test:
 ```
