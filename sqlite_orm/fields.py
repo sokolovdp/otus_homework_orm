@@ -20,6 +20,8 @@ class Field:
         self.auto_now = kwargs.pop('auto_now', False)
         self.unique = kwargs.pop('unique', False)
         self.model_field_name = ''
+        self.source_name = None
+        self.reference = kwargs.pop('reference', None)
 
     def to_db_value(self, value: Any) -> Any:
         if value is None or type(value) == self.py_type:
@@ -51,7 +53,7 @@ class DateTimeField(Field):
 
 class ForeignKeyField(Field):
     def __init__(self, model_name: str, related_name: str = None, on_delete: str = CASCADE, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(None, **kwargs)
         self.model_name = model_name
         self.related_name = related_name
         if on_delete not in {CASCADE, RESTRICT, SET_NULL}:

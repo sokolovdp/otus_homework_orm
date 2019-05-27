@@ -23,6 +23,7 @@ class ModelMeta(type):
         global ALL_ORM_TABLES
         fields_map = dict()
         fields_db = dict()
+        fk_fields = set()
 
         if "id" not in attrs:
             attrs["id"] = fields.IntegerField(is_pk=True)
@@ -33,7 +34,18 @@ class ModelMeta(type):
                 field.model_field_name = name
                 if not field.db_field_name:
                     field.db_field_name = name
-                fields_db[name] = field.db_field_name
+                if isinstance(field, fields.ForeignKeyField):
+                    key_field = "{}_id".format(field)
+                    field.source_name = name
+                    fields_db[key_field] = key_field
+                    fields_map[key_field] = fields.IntegerField(
+                        reference=field,
+                        nullable=field.nullable,
+                        default=field.default
+                    )
+                    fk_fields.add(name)
+                else:
+                    fields_db[name] = field.db_field_name
 
         meta = ModelInfo(attrs.get("Meta"))
         meta.fields_map = fields_map
