@@ -6,7 +6,7 @@ import sys
 from random import randint
 from typing import Any, Iterable, List, Optional, Tuple
 
-from pypika import Parameter, Query, Table
+from pypika import Parameter, Query, Table, Field as PField
 
 from .fields import DateTimeField, Field, IntegerField, StringField
 from .models import OrmModel
@@ -200,7 +200,11 @@ class SQLiteClient:
     def execute_select(self, model, *args, **kwargs) -> list:
         instance_list = []
         db_table = Table(model.model_meta.db_table)
-        query = Query.from_(db_table).select(*args)
+        query = Query.from_(db_table)
+        for table_name in model.model_meta.fk_fields:
+            table = Table(table_name)
+            query = query.join(table).on(PField(table_name + '_id'))
+        query = query.select(*args)
         for k, v in kwargs.items():
             query = query.where(db_table.field(k) == v)
         raw_results = self._run_query(query.get_sql())
