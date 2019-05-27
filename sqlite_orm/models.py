@@ -32,10 +32,8 @@ class ModelMeta(type):
             if isinstance(field, fields.Field):
                 fields_map[name] = field
                 field.model_field_name = name
-                if not field.db_field_name:
-                    field.db_field_name = name
                 if isinstance(field, fields.ForeignKeyField):
-                    key_field = "{}_id".format(field)
+                    key_field = "{}_id".format(name)
                     field.source_name = name
                     fields_db[key_field] = key_field
                     fields_map[key_field] = fields.IntegerField(
@@ -45,12 +43,15 @@ class ModelMeta(type):
                     )
                     fk_fields.add(name)
                 else:
+                    if not field.db_field_name:
+                        field.db_field_name = name
                     fields_db[name] = field.db_field_name
 
         meta = ModelInfo(attrs.get("Meta"))
         meta.fields_map = fields_map
         meta.fields = set(fields_map.keys())
         meta.fields_db = fields_db
+        meta.fk_fields = fk_fields
         meta.db_client = None
         attrs["model_meta"] = meta
 
